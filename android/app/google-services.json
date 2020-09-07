@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "664688123021",
+    "firebase_url": "https://pizzaqueen-2d133.firebaseio.com",
+    "project_id": "pizzaqueen-2d133",
+    "storage_bucket": "pizzaqueen-2d133.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:664688123021:android:2840c38096193a93ab96c4",
+        "android_client_info": {
+          "package_name": "com.example.pizza_queen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "664688123021-irptf8tmsgp6ad4m5l0onpu0s0k4i3p5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaVTDqOmWLJrNVl58W1id-SHbKPQpxFXk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "664688123021-irptf8tmsgp6ad4m5l0onpu0s0k4i3p5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
