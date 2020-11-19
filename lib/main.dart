@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pizza_queen/src/screens/home.dart';
 // import 'package:pizza_queen/src/screens/home.dart';
-import 'package:pizza_queen/src/screens/login.dart';
+// import 'package:pizza_queen/src/screens/login.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: LoginScreen(),
+      home: Home(),
     );
   }
 }

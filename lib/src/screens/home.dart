@@ -1,12 +1,27 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:pizza_queen/src/helpers/screen_navigation.dart';
+import 'package:pizza_queen/src/helpers/style.dart';
+import 'package:pizza_queen/src/providers/app.dart';
+import 'package:pizza_queen/src/providers/category.dart';
+import 'package:pizza_queen/src/providers/product.dart';
+import 'package:pizza_queen/src/providers/restaurant.dart';
+import 'package:pizza_queen/src/providers/user.dart';
 import 'package:pizza_queen/src/screens/cart.dart';
-import 'file:///C:/Users/HP/AndroidStudioProjects/pizza_queen/lib/src/helpers/style.dart';
-import 'package:pizza_queen/src/widgets/bottom_navigation_icons.dart';
+import 'package:pizza_queen/src/screens/category.dart';
+import 'package:pizza_queen/src/screens/login.dart';
+import 'package:pizza_queen/src/screens/order.dart';
+import 'package:pizza_queen/src/screens/product_search.dart';
+import 'package:pizza_queen/src/screens/restaurant.dart';
+import 'package:pizza_queen/src/screens/restaurants_search.dart';
+import 'package:pizza_queen/src/widgets/categories.dart';
+import 'package:pizza_queen/src/widgets/custom_text.dart';
 import 'package:pizza_queen/src/widgets/featured_products.dart';
-import 'package:pizza_queen/src/widgets/offers_List.dart';
-import 'package:pizza_queen/src/widgets/title.dart';
+import 'package:pizza_queen/src/widgets/loading.dart';
+import 'package:pizza_queen/src/widgets/restaurant.dart';
+import 'package:provider/provider.dart';
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -15,113 +30,252 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context);
+    final app = Provider.of<AppProvider>(context);
+    final categoryProvider = Provider.of<CategoryProvider>(context);
+    final restaurantProvider = Provider.of<RestaurantProvider>(context);
+    final productProvider = Provider.of<ProductProvider>(context);
+    restaurantProvider.loadSingleRestaurant();
     return Scaffold(
-      backgroundColor: black,
-      body: SafeArea(
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: white),
+        elevation: 0.5,
+        backgroundColor: yellow,
+        title: CustomText(
+          text: "PizzaQueen",
+          color: white,
+        ),
+        actions: <Widget>[
+          Stack(
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.shopping_cart),
+                onPressed: () {
+                  changeScreen(context, CartScreen());
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+      drawer: Drawer(
         child: ListView(
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CustomText(
-                  text: "What would you like to eat?",
-                    size: 18,
-                    color: yellow,
-                  )),
-                Stack(
-                  children: <Widget>[
-                    IconButton(icon: new Icon(Icons.notifications_none),disabledColor: white,
-                        onPressed: null),
-                    Positioned(
-                      top: 12,
-                      right: 12,
-                      child: Container(
-                        height: 10,
-                        width: 10,
-                        decoration: BoxDecoration(
-                          color: red,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            SizedBox(height: 5,),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                    color: white,
-                    boxShadow: [
-                      BoxShadow(
-                          color: grey,
-                          offset: Offset(1, 1),
-                          blurRadius: 4
-                      )
-                    ]
-                ),
-                child: ListTile(
-                  leading: Icon(Icons.search, color: yellow,),
-                  title: TextField(
-                    decoration: InputDecoration(
-                      hintText: "Find Food",
-                      border: InputBorder.none
-                    ),
-                  ),
-                  trailing: Icon(Icons.filter_list,color: yellow,),
-                ),
+            UserAccountsDrawerHeader(
+              decoration: BoxDecoration(color: black),
+              accountName: CustomText(
+                text: user.userModel?.name ?? "username lading...",
+                color: white,
+                weight: FontWeight.bold,
+                size: 18,
+              ),
+              accountEmail: CustomText(
+                text: user.userModel?.email ?? "email loading...",
+                color: white,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CustomText(text: "Featured Items",size: 20,color: yellow,
-              ),
+            ListTile(
+              onTap: () {
+                changeScreen(context, Home());
+              },
+              leading: Icon(Icons.home),
+              title: CustomText(text: "Home"),
             ),
-            Featured(),
 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CustomText(text: "Offers",size: 20,color: yellow,
-              ),
+            ListTile(
+              onTap: () async{
+                await user.getOrders();
+                changeScreen(context, OrdersScreen());
+              },
+              leading: Icon(Icons.bookmark_border),
+              title: CustomText(text: "My orders"),
             ),
-            Offer(),
+            ListTile(
+              onTap: () {
+                changeScreen(context, CartScreen());
+              },
+              leading: Icon(Icons.shopping_cart),
+              title: CustomText(text: "Cart"),
+            ),
+            ListTile(
+              onTap: () {
+                user.signOut();
+                changeScreenReplacement(context, LoginScreen());
+              },
+              leading: Icon(Icons.exit_to_app),
+              title: CustomText(text: "Log out"),
+            ),
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        height: 73,
-        color: black,
-
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-
-              BottomNavIcon(
-                image: "home.png",
-                name: "Home",
+      backgroundColor: white,
+      body: app.isLoading
+          ? Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[Loading()],
+        ),
+      )
+          : SafeArea(
+        child: ListView(
+          children: <Widget>[
+            Container(
+              decoration: BoxDecoration(
+                  color: black,
+                  borderRadius: BorderRadius.only(
+                      bottomRight: Radius.circular(20),
+                      bottomLeft: Radius.circular(20))),
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    top: 8, left: 8, right: 8, bottom: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.search,
+                      color: red,
+                    ),
+                    title: TextField(
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (pattern)async{
+                        app.changeLoading();
+                        if(app.search == SearchBy.PRODUCTS){
+                          await productProvider.search(productName: pattern);
+                          changeScreen(context, ProductSearchScreen());
+                        }else{
+                          await restaurantProvider.search(name: pattern);
+                          changeScreen(context, RestaurantsSearchScreen());
+                        }
+                        app.changeLoading();
+                      },
+                      decoration: InputDecoration(
+                        hintText: "Find food and restaurant",
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
               ),
+            ),
 
-              BottomNavIcon(
-                onTap: (){
-                  changeScreen(context, ShoppingBag());
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                CustomText(text: "Search by:", color: grey, weight: FontWeight.w300,),
+                DropdownButton<String>(
+                  value: app.filterBy,
+                  style: TextStyle(
+                      color: black,
+                      fontWeight: FontWeight.w300
+                  ),
+                  icon: Icon(Icons.filter_list,
+                    color: black,),
+                  elevation: 0,
+                  onChanged: (value){
+                    if (value == "Products"){
+                      app.changeSearchBy(newSearchBy: SearchBy.PRODUCTS);
+                    }else{
+                      app.changeSearchBy(newSearchBy: SearchBy.RESTAURANTS);
+                    }
+                  },
+                  items: <String>["Products", "Restaurants"].map<DropdownMenuItem<String>>((String value){
+                    return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value));
+                  }).toList(),
+
+                ),
+              ],
+            ),
+            Divider(),
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              height: 100,
+              child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: categoryProvider.categories.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () async {
+//                              app.changeLoading();
+                        await productProvider.loadProductsByCategory(
+                            categoryName:
+                            categoryProvider.categories[index].name);
+
+                        changeScreen(
+                            context,
+                            CategoryScreen(
+                              categoryModel:
+                              categoryProvider.categories[index],
+                            ));
+
+//                              app.changeLoading();
+
+                      },
+                      child: CategoryWidget(
+                        category: categoryProvider.categories[index],
+                      ),
+                    );
+                  }),
+            ),
+            SizedBox(
+              height: 5,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  CustomText(
+                    text: "Featured",
+                    size: 20,
+                    color: grey,
+                  ),
+                ],
+              ),
+            ),
+            Featured(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  CustomText(
+                    text: "Popular restaurants",
+                    size: 20,
+                    color: grey,
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              children: restaurantProvider.restaurants
+                  .map((item) => GestureDetector(
+                onTap: () async {
+                  app.changeLoading();
+
+                  await productProvider.loadProductsByRestaurant(
+                      restaurantId: item.id);
+                  app.changeLoading();
+
+                  changeScreen(
+                      context,
+                      RestaurantScreen(
+                        restaurantModel: item,
+                      ));
                 },
-                image: "cart.png",
-                name: "cart",
-              ),
-
-              BottomNavIcon(
-                image: "account.png",
-                name: "Account",
-              ),
-
-            ],
-          ),
+                child: RestaurantWidget(
+                  restaurant: item,
+                ),
+              ))
+                  .toList(),
+            )
+          ],
         ),
       ),
     );

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pizza_queen/src/models/offers.dart';
 //import 'package:pizza_queen/src/models/products.dart';
-//import 'package:pizza_queen/src/widgets/title.dart';
+//import 'package:pizza_queen/src/widgets/custom_text.dart';
 import '../helpers/style.dart';
 
 List<Offers> offersList =[

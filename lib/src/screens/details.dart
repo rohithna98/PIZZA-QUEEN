@@ -1,156 +1,134 @@
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:pizza_queen/src/models/products.dart';
 import 'package:carousel_pro/carousel_pro.dart';
-//import 'package:pizza_queen/src/widgets/featured_products.dart';
-import 'package:pizza_queen/src/widgets/title.dart';
+import 'package:flutter/material.dart';
+import 'package:pizza_queen/src/helpers/screen_navigation.dart';
+import 'package:pizza_queen/src/models/products.dart';
+import 'package:pizza_queen/src/providers/app.dart';
+import 'package:pizza_queen/src/providers/user.dart';
+import 'package:pizza_queen/src/screens/cart.dart';
+import 'package:pizza_queen/src/widgets/custom_text.dart';
+import 'package:pizza_queen/src/widgets/loading.dart';
+import 'package:provider/provider.dart';
+import 'package:transparent_image/transparent_image.dart';
+
+
 import '../helpers/style.dart';
+
 class Details extends StatefulWidget {
-  final Product product;
+  final ProductModel product;
 
+  const Details({@required this.product});
 
-  Details({@required this.product});
 
   @override
   _DetailsState createState() => _DetailsState();
 }
 
 class _DetailsState extends State<Details> {
+  int quantity = 1;
+  final _key = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context);
+    final app = Provider.of<AppProvider>(context);
+
     return Scaffold(
-      backgroundColor: black,
+      key: _key,
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: black),
+        backgroundColor: white,
+        elevation: 0.0,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () {
+              changeScreen(context, CartScreen());
+            },
+          ),
+
+        ],
+        leading: IconButton(icon: Icon(Icons.close), onPressed: (){Navigator.pop(context);}),
+      ),
+      backgroundColor: white,
       body: SafeArea(
-        child: Column(
+        child: app.isLoading ? Loading() : Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Container(
-              height: 300,
-              child: Stack(
-                children: <Widget>[
-                  Carousel(
-                    images: [
-                      AssetImage('images/${widget.product.image}'),
-                      AssetImage('images/${widget.product.image}'),
-                      AssetImage('images/${widget.product.image}')
-                    ],
-                    dotBgColor: black,
-                    dotColor: yellow,
-                    dotIncreasedColor: red,
-                    dotIncreaseSize: 1.5,
-                    autoplay: false,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(Icons.arrow_back,color: yellow,),
-                        onPressed: (){Navigator.pop(context);},
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right:8.0),
-                        child: Stack(
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Stack(
-                                children: <Widget>[
-                                  Image.asset("images/cart.png",color:yellow,width: 30,height: 30,),
-                                ],
-                              ),
-                            ),
-                            Positioned(
-                              right: 5,
-                              bottom: 4,
-                              child: Container(
-                                  decoration: BoxDecoration(
-                                      color: yellow,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color:grey,
-                                            offset: Offset(2,1),
-                                            blurRadius: 3
-                                        )
-                                      ]
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 4,right: 4),
-                                    child: CustomText(text: "2",color: red,size: 18,weight: FontWeight.bold,),
-                                  )),
-                            ),
-                          ],
-                        ),
-                      )
+            CircleAvatar(
+              radius: 120,
+              backgroundImage: NetworkImage(widget.product.image),
+            ),
+            SizedBox(height: 15,),
 
-                    ],
-                  ),
-                  Positioned(
-                    right: 10,
-                    bottom: 55,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: black,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: yellow,
-                            offset: Offset(2,1),
-                            blurRadius: 3
-                          )
-                        ]
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Icon(
-                          Icons.favorite,
-                          size:22,
-                          color: red,
-                        ),
-                      ),
-                    ),
-                  ),
-                  /* Align(
-                    alignment:Alignment.bottomRight,
-                  ) */
-                  ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                CustomText(text: widget.product.name,color: yellow, size: 26 , weight: FontWeight.normal,),
-                CustomText(text: "\$" + widget.product.price.toString(),color: yellow,size: 18 , weight: FontWeight.bold,),
+            CustomText(text: widget.product.name,size: 26,weight: FontWeight.bold),
+            CustomText(text: "\$${widget.product.price / 100}",size: 20,weight: FontWeight.w400),
+            SizedBox(height: 10,),
 
-              ],
+            CustomText(text: "Description",size: 18,weight: FontWeight.w400),
+
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(widget.product.description , textAlign: TextAlign.center, style: TextStyle(color: grey, fontWeight: FontWeight.w300),),
             ),
-            SizedBox(
-              height: 40,
-            ),
+            SizedBox(height: 15,),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: IconButton(icon: Icon(Icons.remove,color:yellow,size: 25,), onPressed: () {}),
+                  child: IconButton(icon: Icon(Icons.remove,size: 36,), onPressed: (){
+                    if(quantity != 1){
+                      setState(() {
+                        quantity -= 1;
+                      });
+                    }
+                  }),
                 ),
+
                 GestureDetector(
-                  onTap: () {},
+                  onTap: ()async{
+                    app.changeLoading();
+                    print("All set loading");
+
+                    bool value =  await user.addToCard(product: widget.product, quantity: quantity);
+                    if(value){
+                      print("Item added to cart");
+                      _key.currentState.showSnackBar(
+                          SnackBar(content: Text("Added ro Cart!"))
+                      );
+                      user.reloadUserModel();
+                      app.changeLoading();
+                      return;
+                    } else{
+                      print("Item NOT added to cart");
+
+                    }
+                    print("lOADING SET TO FALSE");
+
+                  },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: red,
+                        color: yellow,
+                        borderRadius: BorderRadius.circular(20)
                     ),
-                    child: Padding(
+                    child: app.isLoading ? Loading() : Padding(
                       padding: const EdgeInsets.fromLTRB(28,12,28,12),
-                      child: CustomText(text: "Add to Cart", color: yellow,size: 24,weight: FontWeight.w600,),
+                      child: CustomText(text: "Add $quantity To Cart",color: white,size: 22,weight: FontWeight.w300,),
                     ),
+
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: IconButton(icon: Icon(Icons.add,size: 25,color: yellow,), onPressed: () {}),
-                )
+                  child: IconButton(icon: Icon(Icons.add,size: 36,color: red,), onPressed: (){
+                    setState(() {
+                      quantity += 1;
+                    });
+                  }),
+                ),
               ],
-            )
+            ),
+
           ],
         ),
       ),

@@ -1,139 +1,158 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pizza_queen/src/helpers/screen_navigation.dart';
 import 'package:pizza_queen/src/models/products.dart';
+import 'package:pizza_queen/src/providers/product.dart';
+import 'package:pizza_queen/src/providers/user.dart';
 import 'package:pizza_queen/src/screens/details.dart';
-import 'package:pizza_queen/src/widgets/title.dart';
+import 'package:provider/provider.dart';
+import 'package:transparent_image/transparent_image.dart';
+
 import '../helpers/style.dart';
+import 'custom_text.dart';
+import 'loading.dart';
 
-List<Product> productsList =[
-  Product(name:"Chicken Pizza",price:5.99,rating:4.0,vendor: "GoodFood",wishList: true,image: "20.jpg"),
-  Product(name:"Cool Drinks",price:3.54,rating:4.0,vendor: "GoodFood",wishList: true,image: "24.jpg"),
-  Product(name:"Paneer Pizza",price:4.99,rating:4.0,vendor: "GoodFood",wishList: true,image: "20.jpg")
-];
+class Featured extends StatefulWidget {
+  @override
+  _FeaturedState createState() => _FeaturedState();
+}
 
-class Featured extends StatelessWidget {
+class _FeaturedState extends State<Featured> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        height: 240,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: productsList.length,
-          itemBuilder: (_, index){
-            return Padding(
-              padding: EdgeInsets.fromLTRB(12,14,16,12),
-              child: GestureDetector(
-                onTap: (){
-                  changeScreen(_, Details(product: productsList[index],));
-                },
-                child: Container(
-                  height: 220,
-                  width: 200,
-                  decoration: BoxDecoration(
-                      color: black,
-                      boxShadow: [
-                        BoxShadow(
-                            color: yellow,
-                            offset: Offset(15, 5),
-                            blurRadius: 30
-                        )
-                      ]
-                  ),
-                  child: Column(
-                    children: <Widget>[
-                      Image.asset("images/${productsList[index].image}",height: 130,width: 130,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CustomText(text: productsList[index].name, color: yellow,),
-                          ),
-                          Padding(padding: EdgeInsets.all(8),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: black,
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: grey,
-                                        offset: Offset(1, 1),
-                                        blurRadius: 4
-                                    )
-                                  ]
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: productsList[index].wishList ? Icon(
-                                  Icons.favorite_border,
-                                  color: red,
-                                  size: 19,
-                                ) : Icon(
-                                  Icons.favorite_border,
-                                  color: yellow,
-                                  size: 19,
-                                ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
+    final productProvider = Provider.of<ProductProvider>(context);
+    final user = Provider.of<UserProvider>(context);
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Row(
+
+    return Container(
+      height: 220,
+      child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: productProvider.products.length,
+          itemBuilder: (_, index) {
+            return Padding(
+                padding: EdgeInsets.fromLTRB(12, 14, 16, 12),
+                child: GestureDetector(
+                  onTap: () {
+                    changeScreen(
+                        _,
+                        Details(
+                          product: productProvider.products[index],
+                        ));
+                  },
+                  child: Container(
+                    height: 220,
+                    width: 200,
+                    decoration: BoxDecoration(
+                        color: white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.grey[300],
+                              offset: Offset(-2, -1),
+                              blurRadius: 5),
+                        ]),
+                    child: Column(
+                      children: <Widget>[
+                        ClipRRect(
+                          borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20)),
+                          child: Stack(
                             children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.only(left:8.0),
-                                child: CustomText(
-                                  text: productsList[index].rating.toString(),
-                                  color: grey,
-                                  size: 14,),
-                              ),
-                              SizedBox(
-                                width: 2,
-                              ),
-                              Icon(
-                                Icons.star,
-                                color: red,
-                                size: 16,),
-                              Icon(
-                                Icons.star,
-                                color: red,
-                                size: 16,
-                              ),
-                              Icon(
-                                Icons.star,
-                                color: red,
-                                size: 16,
-                              ),
-                              Icon(
-                                Icons.star,
-                                color: red,
-                                size: 16,
-                              ),
-                              Icon(
-                                Icons.star,
-                                color: grey,
-                                size: 16,
+                              Positioned.fill(
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Loading(),
+                                  )),
+                              Center(
+                                child: FadeInImage.memoryNetwork(
+                                  placeholder: kTransparentImage,
+                                  image: productProvider.products[index].image,
+                                  height: 126,
+                                ),
                               )
                             ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(right:8.0),
-                            child: CustomText(text: "\$${productsList[index].price.toString()}", color: yellow,weight: FontWeight.bold,),
-                          )
-                        ],
-                      )
-                    ],
-
-                  ) ,
-                ),
-              ),);
-          },
-        )
-    )
-    ;
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CustomText(
+                                text: productProvider.products[index].name ??
+                                    "id null",
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(8),
+                              child: GestureDetector(
+                                onTap: (){
+//                                  setState(() {
+//                                    productProvider.products[index].liked = !productProvider.products[index].liked;
+//                                  });
+//                                  productProvider.likeDislikeProduct(userId: user.userModel.id, product: productProvider.products[index], liked: productProvider.products[index].liked);
+                                },
+                                child: Container(),
+                              ),
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: CustomText(
+                                    text: productProvider.products[index].rating
+                                        .toString(),
+                                    color: grey,
+                                    size: 14.0,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 2,
+                                ),
+                                Icon(
+                                  Icons.star,
+                                  color: red,
+                                  size: 16,
+                                ),
+                                Icon(
+                                  Icons.star,
+                                  color: red,
+                                  size: 16,
+                                ),
+                                Icon(
+                                  Icons.star,
+                                  color: red,
+                                  size: 16,
+                                ),
+                                Icon(
+                                  Icons.star,
+                                  color: grey,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: CustomText(
+                                text:
+                                "\$${productProvider.products[index].price / 100}",
+                                weight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ));
+          }),
+    );
   }
 }
